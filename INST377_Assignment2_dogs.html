@@ -1,0 +1,165 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INST377 Dogs Page</title>
+    <link rel="stylesheet" href="INST377_Assignment2_homepage.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-slider"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Dog Information</h1>
+      <nav>
+        <ul class="navbar">
+          <li>
+            <a href="INST377_Assignment2_Home.html">Home</a>
+          </li>
+          <li>
+            <a href="INST377_Assignment2_Stocks.html">Stocks</a>
+          </li>
+          <li>
+            <a href="INST377_Assignment2_dogs.html">Dogs</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section>
+        <h2>Dog Image Carousel</h2>
+        <div id="dog-carousel" class="slider"></div>
+      </section>
+      <section>
+        <h2>Dog Breeds</h2>
+        <div id="breed-buttons"></div>
+        <div id="breed-info" style="display:none; margin-top: 2rem;"></div>
+      </section>
+      <div class="audio-instructions">
+        <h2>In this web page there are options to Navigate using Audio!</h2>
+        <p>Ensure your Mic is enabled to be able to use this feature</p>
+        <ul>
+          <li>Load a Dog Breed <br>
+            <small>Say: Load Dog Breed &lt;breed&gt;</small>
+          </li>
+          <li>Navigate to a Different Page <br>
+            <small>Say: Navigate to &lt;page&gt;</small>
+          </li>
+          <li>Change the Page Color <br>
+            <small>Say: Change the color to &lt;color&gt;</small>
+          </li>
+          <li>Say Hello Back to You! <br>
+            <small>Say: Hello</small>
+          </li>
+        </ul>
+        <button onclick="annyang.start()">Turn On Listening</button>
+        <button onclick="annyang.abort()">Turn Off Listening</button>
+      </div>
+    </main>
+
+  <script>
+   async function loadRandomDogs() {
+     const carousel = document.getElementById('dog-carousel');
+     carousel.innerHTML = '';
+
+     const response = await fetch('https://dog.ceo/api/breeds/image/random/10');
+     const data = await response.json();
+     const images = data.message;
+
+     let currentIndex = 0;
+
+     const imgEl = document.createElement('img');
+     imgEl.src = images[currentIndex];
+     imgEl.style.width = '300px';
+     imgEl.style.height = 'auto';
+
+     const leftBtn = document.createElement('button');
+     leftBtn.textContent = '<';
+     leftBtn.className = 'custom-button';
+     leftBtn.onclick = () => {
+       currentIndex = (currentIndex - 1 + images.length) % images.length;
+       imgEl.src = images[currentIndex];
+     };
+
+     const rightBtn = document.createElement('button');
+     rightBtn.textContent = '>';
+     rightBtn.className = 'custom-button';
+     rightBtn.onclick = () => {
+       currentIndex = (currentIndex + 1) % images.length;
+       imgEl.src = images[currentIndex];
+     };
+
+     const carouselWrapper = document.createElement('div');
+     carouselWrapper.style.display = 'flex';
+     carouselWrapper.style.alignItems = 'center';
+     carouselWrapper.style.justifyContent = 'center';
+     carouselWrapper.style.gap = '10px';
+
+     carouselWrapper.appendChild(leftBtn);
+     carouselWrapper.appendChild(imgEl);
+     carouselWrapper.appendChild(rightBtn);
+
+     carousel.appendChild(carouselWrapper);
+   }
+
+   async function loadBreeds() {
+     const breedBtnContainer = document.getElementById('breed-buttons');
+     const response = await fetch('https://api.thedogapi.com/v1/breeds');
+     const data = await response.json();
+
+     data.slice(0, 15).forEach(breed => {
+       const btn = document.createElement('button');
+       btn.textContent = breed.name;
+       btn.className = 'custom-button';
+       btn.addEventListener('click', () => showBreedInfo(breed));
+       breedBtnContainer.appendChild(btn);
+     });
+   }
+
+   function showBreedInfo(breed) {
+     const container = document.getElementById('breed-info');
+     container.style.display = 'block';
+     container.innerHTML = `
+        <h3>${breed.name}</h3>
+        <p><strong>Description:</strong> ${breed.temperament || 'N/A'}</p>
+        <p><strong>Min Life Span:</strong> ${breed.life_span?.split(' ')[0] || 'N/A'} years</p>
+        <p><strong>Max Life Span:</strong> ${breed.life_span?.split(' ')[2] || 'N/A'} years</p>
+      `;
+   }
+
+   if (annyang) {
+     const commands = {
+       'load dog breed *breed': (breedName) => {
+         fetch('https://api.thedogapi.com/v1/breeds')
+           .then(res => res.json())
+           .then(data => {
+             const match = data.find(b => b.name.toLowerCase() === breedName.toLowerCase());
+             if (match) showBreedInfo(match);
+             else alert('Breed not found.');
+           });
+       }
+     };
+     commands['hello'] = () => alert('Hello World');
+     commands['change the color to *color'] = (color) => {
+       document.body.style.setProperty('background-color', color, 'important');
+     };
+     commands['navigate to *page'] = (page) => {
+       page = page.toLowerCase();
+       if (page.includes('home')) window.location.href = 'INST377_Assignment2_Home.html';
+       else if (page.includes('stock')) window.location.href = 'INST377_Assignment2_Stocks.html';
+       else if (page.includes('dog')) window.location.href = 'INST377_Assignment2_dogs.html';
+     };
+
+     annyang.addCommands(commands);
+   }
+
+   document.addEventListener("DOMContentLoaded", () => {
+     loadRandomDogs();
+     loadBreeds();
+   });
+  </script>
+</body>
+</html>
+
+
+
+
+
