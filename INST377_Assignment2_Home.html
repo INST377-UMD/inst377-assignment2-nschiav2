@@ -1,0 +1,149 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INST377 Assignment 2</title>
+    <link rel="stylesheet" href="INST377_Assignment2_homepage.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>INST377 Assignment 2 Home Page</h1>
+      <nav>
+        <ul class="navbar">
+          <li>
+            <a href="INST377_Assignment2_Home.html">Home</a>
+          </li>
+          <li>
+            <a href="INST377_Assignment2_Stocks.html">Stocks</a>
+          </li>
+          <li>
+            <a href="INST377_Assignment2_dogs.html">Dogs</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <h2>These are some different activities we can try!</h2>
+      <div class="button-group">
+        <a href="INST377_Assignment2_Stocks.html" class="button-82-pushable">
+          <span class="button-82-shadow"></span>
+          <span class="button-82-edge"></span>
+          <span class="button-82-front text">Stocks</span>
+        </a>
+        <a href="INST377_Assignment2_dogs.html" class="button-82-pushable">
+          <span class="button-82-shadow"></span>
+          <span class="button-82-edge"></span>
+          <span class="button-82-front text">Dogs</span>
+        </a>
+      </div>
+      <div class="quote-box" id="quote-box">
+        <h3>Quote of the Page Load</h3>
+        <blockquote id="quote-text">Loading quote...</blockquote>
+      </div>
+      <div class="audio-instructions">
+        <h2>In this web page there are options to Navigate using Audio!</h2>
+        <p>Ensure your Mic is enabled to be able to use this feature</p>
+        <ul>
+          <li>Navigate to a Different Page <br>
+            <small>Say: Navigate to &lt;page&gt;</small>
+          </li>
+          <li>Change the Page Color <br>
+            <small>Say: Change the color to &lt;color&gt;</small>
+          </li>
+          <li>Say Hello Back to you! <br>
+            <small>Say: Hello</small>
+          </li>
+        </ul>
+        <button onclick="annyang.start()">Turn On Listening</button>
+        <button onclick="annyang.abort()">Turn Off Listening</button>
+      </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          if (localStorage.getItem('annyangActive') === 'true' && annyang) {
+            annyang.start();
+          }
+    
+          // Annyang Commands
+          if (annyang) {
+            const commands = {
+              'change the color to *color': (color) => {
+                console.log('Annyang heard color:', color);
+                document.body.style.setProperty('background-color', color, 'important');
+              },
+              'hello': () => alert('Hello World'),
+              'change the page color to *color': (color) => {
+                console.log('Annyang heard color:', color);
+                document.body.style.setProperty('background-color', color, 'important');
+              },
+              'navigate to *page': (page) => {
+                page = page.toLowerCase();
+                if (page.includes('stock')) window.location.href = 'INST377_Assignment2_Stocks.html';
+                else if (page.includes('dog')) window.location.href = 'INST377_Assignment2_dogs.html';
+                else if (page.includes('home')) window.location.href = 'INST377_Assignment2_Home.html';
+              }
+            };
+    
+            commands['lookup *ticker'] = (ticker) => {
+              console.log('Voice input ready to lookup:', ticker);
+              const inputField = document.getElementById('stockInput');
+              if (inputField) {
+                const handleFocus = () => {
+                  inputField.value = ticker.toUpperCase();
+                  if (typeof lookupStock === 'function') {
+                    lookupStock(ticker.toUpperCase());
+                  }
+                  inputField.removeEventListener('focus', handleFocus);
+                };
+                inputField.addEventListener('focus', handleFocus);
+              }
+            };
+    
+            annyang.addCommands(commands);
+    
+            // Toggle on and off buttons for active listening
+            const startBtn = document.querySelector('button[onclick="annyang.start()"]');
+            const stopBtn = document.querySelector('button[onclick="annyang.abort()"]');
+    
+            if (startBtn) {
+              startBtn.addEventListener('click', () => {
+                sessionStorage.setItem('annyangPersistent', 'true');
+                localStorage.setItem('annyangActive', 'true');
+                annyang.start();
+              });
+            }
+            if (stopBtn) {
+              stopBtn.addEventListener('click', () => {
+                sessionStorage.setItem('annyangPersistent', 'false');
+                localStorage.setItem('annyangActive', 'false');
+                annyang.abort();
+              });
+            }
+          }
+    
+          // Quote generation
+          fetch('https://zenquotes.io/api/random')
+            .then(response => {
+              if (!response.ok) throw new Error("Quote fetch failed.");
+              return response.json();
+            })
+            .then(data => {
+              const quote = data[0];
+              document.getElementById('quote-text').textContent = `"${quote.q}" — ${quote.a}`;
+            })
+            .catch(error => {
+              console.error("Error fetching quote:", error);
+              document.getElementById('quote-text').textContent = "Could not load quote. Please try again.";
+            });
+        });
+    </script>
+</body>
+</html>
+    
+    
+    
+    
+
+
+  
